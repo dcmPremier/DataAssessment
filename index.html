@@ -107,7 +107,34 @@ em { font-style: italic; }
   transition: background 160ms ease, transform 160ms ease;
 }
 .topbar nav .cta:hover { background: var(--def-green-600); transform: translateY(-1px); }
-.topbar .nav-toggle { display: none; }
+.topbar .nav-toggle {
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 5px;
+  width: 40px; height: 40px;
+  margin-left: auto;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+.topbar .nav-toggle:hover, .topbar .nav-toggle:focus-visible {
+  background: rgba(255,255,255,0.05);
+  border-color: var(--def-dark-gray);
+  outline: none;
+}
+.topbar .nav-toggle .nav-toggle-bar {
+  display: block; width: 22px; height: 2px;
+  background: var(--def-white);
+  border-radius: 2px;
+  transform-origin: center;
+  transition: transform 220ms ease, opacity 160ms ease;
+}
+.topbar .nav-toggle.is-open .nav-toggle-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.topbar .nav-toggle.is-open .nav-toggle-bar:nth-child(2) { opacity: 0; }
+.topbar .nav-toggle.is-open .nav-toggle-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 /* ── Page views (Assessment / How We Work) ──────────────────── */
 .page-view { display: none; position: relative; z-index: 1; }
@@ -1497,7 +1524,40 @@ em { font-style: italic; }
 
 /* ── Mobile ──────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
-  .topbar nav .topnav-links { display: none; }
+  .topbar .nav-toggle { display: inline-flex; }
+  .topbar nav.topnav-links {
+    position: absolute; top: 100%; left: 0; right: 0;
+    margin-left: 0;
+    flex-direction: column; align-items: stretch; gap: 0;
+    padding: 6px 20px 18px;
+    background: rgba(2, 7, 45, 0.96);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border-bottom: 1px solid var(--def-dark-gray);
+    transform: translateY(-8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 200ms ease, opacity 200ms ease;
+  }
+  .topbar nav.topnav-links.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .topbar nav.topnav-links a {
+    display: block;
+    padding: 14px 8px;
+    font-size: 16px;
+    opacity: 1;
+    border-bottom: 1px solid var(--def-dark-gray);
+  }
+  .topbar nav.topnav-links a:last-child { border-bottom: none; }
+  .topbar nav.topnav-links .cta {
+    margin-top: 14px;
+    text-align: center;
+    border-radius: 4px;
+    border-bottom: none;
+  }
 }
 @media (max-width: 980px) {
   .pipeline.cols-6, .pipeline.cols-5, .pipeline.cols-4 { grid-template-columns: repeat(3, 1fr); }
@@ -1569,7 +1629,12 @@ em { font-style: italic; }
     <span class="brand-divider" aria-hidden="true"></span>
     <span class="doc-title">Data Modernization Assessment</span>
   </div>
-  <nav class="topnav-links" aria-label="Pages">
+  <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="topnav-links">
+    <span class="nav-toggle-bar"></span>
+    <span class="nav-toggle-bar"></span>
+    <span class="nav-toggle-bar"></span>
+  </button>
+  <nav class="topnav-links" id="topnav-links" aria-label="Pages">
     <a href="#assessment" id="navAssessment">Assessment</a>
     <a href="#how-we-work" id="navHww">How We Work</a>
     <a class="cta" href="https://www.definian.com/contact" target="_blank" rel="noopener noreferrer">Start a conversation</a>
@@ -2983,8 +3048,52 @@ function __initV3() {
     document.querySelectorAll('.count-up').forEach(el => { el.textContent = el.getAttribute('data-count') || '0'; });
   }
 
+  initNavToggle();
+
   window.addEventListener('hashchange', routeFromHash);
   routeFromHash();
+}
+
+/* ---------- Mobile nav toggle ---------- */
+function initNavToggle() {
+  const toggle = document.querySelector('.topbar .nav-toggle');
+  const panel = document.getElementById('topnav-links');
+  if (!toggle || !panel) return;
+
+  const close = () => {
+    panel.classList.remove('is-open');
+    toggle.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Open menu');
+  };
+  const open = () => {
+    panel.classList.add('is-open');
+    toggle.classList.add('is-open');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Close menu');
+  };
+
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    panel.classList.contains('is-open') ? close() : open();
+  });
+  // Tapping a link closes the menu
+  panel.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+  // Esc closes
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && panel.classList.contains('is-open')) close();
+  });
+  // Outside click closes
+  document.addEventListener('click', e => {
+    if (!panel.classList.contains('is-open')) return;
+    const tb = document.querySelector('.topbar');
+    if (tb && !tb.contains(e.target)) close();
+  });
+  // Reset when crossing back into desktop breakpoint
+  const mq = window.matchMedia('(min-width: 1101px)');
+  const handle = (ev) => { if (ev.matches) close(); };
+  if (mq.addEventListener) mq.addEventListener('change', handle);
+  else mq.addListener(handle);
 }
 // Bundler may inject this script after DOMContentLoaded has already fired —
 // run init immediately in that case, otherwise wait for it.
