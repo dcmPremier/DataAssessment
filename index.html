@@ -1280,43 +1280,79 @@ em { font-style: italic; }
    V5 — How We Work components
    ============================================================ */
 
-/* HWW §01 — Engagement timeline */
-.timeline { position: relative; display: flex; flex-direction: column; gap: 10px; margin: 4px 0; }
-.tl-step { position: relative; display: grid; grid-template-columns: 48px 1fr; cursor: pointer; }
-.tl-step.no-expand { cursor: default; }
-.tl-step:focus-visible { outline: 2px solid var(--def-green); outline-offset: 4px; border-radius: 8px; }
-.tl-rail { position: relative; display: flex; justify-content: center; }
-.tl-rail::before { content: ""; position: absolute; top: 18px; bottom: -12px; left: 50%; width: 2px; transform: translateX(-50%); background: linear-gradient(180deg, rgba(0,171,99,.5), rgba(0,171,99,.22)); }
-.tl-step:last-child .tl-rail::before { display: none; }
-.tl-node {
-  position: relative; z-index: 1; margin-top: 9px;
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--def-midnight); border: 2px solid var(--def-green);
-  box-shadow: 0 0 0 4px rgba(0,171,99,.12), 0 0 16px rgba(0,171,99,.35);
-  transition: background 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+/* HWW §01 — Engagement journey (Gantt-style timeline) */
+.journey { margin: 6px 0 4px; }
+.journey-scale-wrap { display: grid; grid-template-columns: 64px 1fr; align-items: end; gap: 14px; margin-bottom: 10px; }
+.journey-scale-label { font-size: 10.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--def-cool-gray); opacity: .55; padding-bottom: 4px; }
+.journey-scale { display: grid; grid-template-columns: repeat(6, 1fr); }
+.journey-scale .jtick { position: relative; text-align: center; padding-bottom: 8px; }
+.journey-scale .jtick::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 1px; height: 6px; background: rgba(216,215,238,.22); transform: translateX(-50%); }
+.jtick-num { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--def-cool-gray); opacity: .7; }
+.jtick-cap { display: block; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--def-cool-gray); opacity: .4; margin-top: 1px; }
+
+.journey-gantt {
+  position: relative;
+  display: grid; grid-template-columns: 64px 1fr; gap: 0 14px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(216,215,238,.1);
+  border-bottom: 1px solid rgba(216,215,238,.1);
 }
-.tl-step:hover .tl-node { background: rgba(0,171,99,.4); }
-.tl-step.is-open .tl-node { background: var(--def-green); transform: scale(1.12); box-shadow: 0 0 0 6px rgba(0,171,99,.18), 0 0 22px rgba(0,171,99,.6); }
-.tl-card {
-  margin: 0 0 6px 10px;
-  background: rgba(255,255,255,.025); border: 1px solid var(--def-dark-gray); border-radius: 10px;
-  padding: 16px 20px;
-  transition: border-color 200ms ease, background 200ms ease;
+/* week gridlines behind the bars (over the 1fr track only) */
+.journey-gantt::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: calc(64px + 14px); right: 0;
+  background-image: repeating-linear-gradient(90deg, rgba(216,215,238,.09) 0 1px, transparent 1px calc(100% / 6));
+  pointer-events: none;
 }
-.tl-step:hover .tl-card, .tl-step.is-open .tl-card { border-color: rgba(0,171,99,.5); background: rgba(0,171,99,.05); }
-.tl-row1 { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.tl-name { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--def-white); letter-spacing: -.005em; }
-.tl-desc { color: var(--def-cool-gray); font-size: 14px; line-height: 1.5; opacity: .82; margin-top: 4px; }
-.tl-step .chevron { width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; color: var(--def-cool-gray); opacity: .6; flex-shrink: 0; transition: transform 280ms var(--ease-out), color 200ms ease, opacity 200ms ease; }
-.tl-step:hover .chevron, .tl-step.is-open .chevron { color: var(--def-green); opacity: 1; }
-.tl-step.is-open .chevron { transform: rotate(90deg); }
-.tl-step .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 460ms var(--ease-out), margin-top 320ms ease; margin-top: 0; }
-.tl-step.is-open .more { grid-template-rows: 1fr; margin-top: 14px; }
-.tl-step .more > .inner { overflow: hidden; min-height: 0; }
-.tl-step .more .deep { padding-top: 12px; border-top: 1px solid rgba(216,215,238,.08); color: var(--def-cool-gray); font-size: 14px; line-height: 1.65; }
-.tl-step .more .deep p { margin: 0 0 .8em; }
-.tl-step .more .deep p:last-child { margin-bottom: 0; }
-.tl-step .more .deep em { color: var(--def-green); font-style: normal; font-weight: 600; }
+.jrow { display: contents; }
+.jrow-label { grid-column: 1; align-self: center; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--def-cool-gray); opacity: .5; text-align: right; }
+.jtrack { grid-column: 2; position: relative; height: 46px; }
+.jbar {
+  position: absolute; top: 5px; bottom: 5px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px 0 14px;
+  border-radius: 8px; cursor: pointer; text-align: left;
+  background: rgba(0,171,99,.10);
+  border: 1px solid rgba(0,171,99,.4);
+  box-shadow: inset 0 0 0 0 rgba(0,171,99,0);
+  transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease, opacity 220ms ease;
+  overflow: hidden; min-width: 0;
+}
+.jbar::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--def-green); opacity: .6; transition: opacity 200ms ease; }
+.jbar-node { width: 9px; height: 9px; border-radius: 50%; background: var(--def-midnight); border: 2px solid var(--def-green); flex-shrink: 0; transition: background 200ms ease, box-shadow 200ms ease; }
+.jbar-label { font-family: var(--font-display); font-size: 13.5px; font-weight: 600; color: var(--def-white); letter-spacing: -.005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.jbar:hover { background: rgba(0,171,99,.18); transform: translateY(-1px); }
+.jbar:focus-visible { outline: 2px solid var(--def-green); outline-offset: 3px; }
+.jbar.is-active {
+  background: linear-gradient(120deg, rgba(0,171,99,.42), rgba(0,171,99,.24));
+  border-color: var(--def-green);
+  box-shadow: 0 0 0 1px rgba(0,171,99,.5), 0 8px 26px rgba(0,171,99,.28);
+}
+.jbar.is-active::before { opacity: 1; box-shadow: 0 0 12px rgba(0,255,153,.6); }
+.jbar.is-active .jbar-node { background: var(--def-green-bright, #00FF99); box-shadow: 0 0 10px rgba(0,255,153,.8); }
+.jbar.is-passed { opacity: .9; }
+.jbar.is-passed .jbar-node { background: var(--def-green); }
+
+.journey-detail { position: relative; margin-top: 22px; }
+.jdetail { display: none; }
+.jdetail.is-active { display: block; animation: jfade 360ms var(--ease-out); }
+@keyframes jfade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.jdetail-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+.jdetail-week { display: inline-flex; align-items: center; padding: 5px 13px; border-radius: 999px; background: rgba(0,171,99,.12); border: 1px solid rgba(0,171,99,.4); color: var(--def-green); font-family: var(--font-display); font-size: 12px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
+.jdetail-title { font-family: var(--font-display); font-size: 21px; font-weight: 600; color: var(--def-white); letter-spacing: -.01em; line-height: 1.2; margin: 0; }
+.jdetail-body { color: var(--def-cool-gray); font-size: 14.5px; line-height: 1.65; opacity: .9; }
+.jdetail-body p { margin: 0 0 .9em; }
+.jdetail-body p:last-child { margin-bottom: 0; }
+.jdetail-body em { color: var(--def-green); font-style: normal; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: 11.5px; }
+
+@media (max-width: 720px) {
+  .journey-scale-wrap, .journey-gantt { grid-template-columns: 1fr; }
+  .journey-scale-label, .jrow-label { display: none; }
+  .journey-gantt { gap: 8px; padding: 4px 0; border: none; }
+  .journey-gantt::after { display: none; }
+  .jtrack { grid-column: 1; height: auto; }
+  .jbar { position: static; top: auto; bottom: auto; width: 100% !important; left: 0 !important; padding: 14px 16px; }
+  .jbar-label { white-space: normal; }
+}
 
 /* HWW §02 — Methodology threads (icon accordion) */
 .methods { display: flex; flex-direction: column; gap: 12px; margin: 4px 0; }
@@ -1879,21 +1915,29 @@ const METHOD = [
     items: [
       {
         nm: 'Week 1 \u2014 Orientation and access',
+        phase: 'Orientation & access',
+        span: [1, 1],
         desc: 'Foundation work: access, inventory, stakeholders, scope.',
         deep: '<p>The first week establishes the operational foundation. Data access is set up across in-scope systems, stakeholders are identified across data, governance, and business functions, and scope is confirmed against the SOW.</p><p><em>Artifacts:</em> confirmed scope \u00b7 access plan \u00b7 stakeholder map \u00b7 profiling inventory</p>'
       },
       {
         nm: 'Weeks 2\u20133 \u2014 Profiling and analysis',
+        phase: 'Profiling & analysis',
+        span: [2, 3],
         desc: 'Concurrent profiling and stewardship work, anchored to early findings.',
         deep: '<p>Tactical profiling runs alongside governance, stewardship, and process discussions. Findings begin surfacing within days of access being established. Data conditions and organizational behaviors are analyzed together in real time.</p><p><em>Artifacts:</em> initial profile findings \u00b7 operational observations \u00b7 governance working notes</p>'
       },
       {
         nm: 'Weeks 3\u20134 \u2014 Synthesis and findings',
+        phase: 'Synthesis & findings',
+        span: [3, 4],
         desc: 'Observation to interpretation. The dimensional view takes shape.',
         deep: '<p>Findings are validated and connected across dimensions. A quality issue may also expose an ownership gap. A master data conflict may reveal a process inconsistency. The Playbook begins taking operational shape.</p><p><em>Artifacts:</em> validated findings \u00b7 operational dependencies \u00b7 recommendation sequencing</p>'
       },
       {
         nm: 'Weeks 5\u20136 \u2014 Recommendations and playbook',
+        phase: 'Recommendations & playbook',
+        span: [5, 6],
         desc: 'The Playbook is finalized. Closing readout to leadership.',
         deep: '<p>The final phase produces the deliverable set. The Executive Findings Summary takes shape. The Data Readiness Scorecard gets populated. The Modernization Implementation Playbook is finalized: who owns what, against which modernization milestones, and how the discipline gets sustained after the assessment ends.</p><p><em>Artifacts:</em> deliverable set \u00b7 modernization playbook \u00b7 prioritized recommendations</p>'
       }
@@ -2301,27 +2345,53 @@ function renderDashboardDrawer(p) {
     </div>`;
 }
 
-/* HWW §01 — The Engagement as a vertical timeline. */
+/* HWW §01 — The Engagement as a Gantt-style journey across the weeks. */
 function renderTimelineDrawer(p) {
-  const steps = p.items.map((it, idx) => {
-    const hasDeep = !!(it.deep && it.deep.trim());
+  const TOTAL = 6;
+  const weekLabel = (sp, idx) => {
+    const s = sp ? sp[0] : idx + 1, e = sp ? sp[1] : idx + 1;
+    return e > s ? `Weeks ${s}–${e}` : `Week ${s}`;
+  };
+  const rows = p.items.map((it, idx) => {
+    const sp = it.span || [idx + 1, idx + 1];
+    const left = (sp[0] - 1) / TOTAL * 100;
+    const width = (sp[1] - sp[0] + 1) / TOTAL * 100;
     return `
-    <div class="tl-step${hasDeep ? '' : ' no-expand'}" data-idx="${idx}" role="${hasDeep ? 'button' : 'group'}" ${hasDeep ? 'tabindex="0"' : ''} aria-expanded="false">
-      <div class="tl-rail"><span class="tl-node" aria-hidden="true"></span></div>
-      <div class="tl-card">
-        <div class="tl-row1">
-          <div class="tl-name">${it.nm}</div>
-          ${hasDeep ? '<span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></span>' : ''}
-        </div>
-        <div class="tl-desc">${it.desc}</div>
-        ${hasDeep ? `<div class="more"><div class="inner"><div class="deep">${it.deep}</div></div></div>` : ''}
+    <div class="jrow">
+      <div class="jrow-label">0${idx + 1}</div>
+      <div class="jtrack">
+        <button class="jbar${idx === 0 ? ' is-active' : ''}" data-idx="${idx}" type="button" role="tab"
+          aria-selected="${idx === 0 ? 'true' : 'false'}" style="left:${left}%; width:${width}%;">
+          <span class="jbar-node" aria-hidden="true"></span>
+          <span class="jbar-label">${it.phase || it.nm}</span>
+        </button>
       </div>
     </div>`;
   }).join('');
+
+  const scale = Array.from({ length: TOTAL }, (_, i) =>
+    `<span class="jtick"><span class="jtick-num">${i + 1}</span></span>`).join('');
+
+  const details = p.items.map((it, idx) => `
+    <div class="jdetail${idx === 0 ? ' is-active' : ''}" data-idx="${idx}" role="tabpanel">
+      <div class="jdetail-head">
+        <span class="jdetail-week">${weekLabel(it.span, idx)}</span>
+        <h4 class="jdetail-title">${it.phase || it.nm}</h4>
+      </div>
+      <div class="jdetail-body">${it.deep}</div>
+    </div>`).join('');
+
   return `
     <div class="drawer-card">
       ${drawerHead(p)}
-      <div class="timeline">${steps}</div>
+      <div class="journey" id="engagementJourney" role="tablist" aria-label="Engagement timeline">
+        <div class="journey-scale-wrap">
+          <span class="journey-scale-label">Week</span>
+          <div class="journey-scale">${scale}</div>
+        </div>
+        <div class="journey-gantt">${rows}</div>
+        <div class="journey-detail">${details}</div>
+      </div>
       ${p.closing ? `<div class="drawer-closing"><p>${p.closing}</p></div>` : ''}
     </div>`;
 }
@@ -2552,7 +2622,30 @@ function wireDrawerHandlers(pageId, phases, phaseId) {
 
   // §01 pillars + §05 dashboard tiles — independent click/keyboard expand
   // (CSS also reveals on hover for pointer devices).
-  drawer.querySelectorAll('.pillar, .dtile, .tl-step, .method').forEach(el => {
+  // §01 engagement journey — Gantt bars select a phase, detail panel swaps below
+  const journey = drawer.querySelector('#engagementJourney');
+  if (journey) {
+    const bars = [...journey.querySelectorAll('.jbar')];
+    const dets = [...journey.querySelectorAll('.jdetail')];
+    function selectJourney(idx) {
+      bars.forEach((b, i) => {
+        const active = i === idx;
+        b.classList.toggle('is-active', active);
+        b.classList.toggle('is-passed', i < idx);
+        b.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      dets.forEach(d => d.classList.toggle('is-active', +d.dataset.idx === idx));
+    }
+    bars.forEach((b, i) => {
+      b.addEventListener('click', () => selectJourney(i));
+      b.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); bars[Math.min(i + 1, bars.length - 1)].focus(); selectJourney(Math.min(i + 1, bars.length - 1)); }
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); bars[Math.max(i - 1, 0)].focus(); selectJourney(Math.max(i - 1, 0)); }
+      });
+    });
+  }
+
+  drawer.querySelectorAll('.pillar, .dtile, .method').forEach(el => {
     if (el.classList.contains('no-expand')) return;
     function fire() {
       const open = el.classList.toggle('is-open');
