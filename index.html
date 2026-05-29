@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <title>Definian — Data Modernization Assessment</title>
 <!-- v5 -->
-<meta name="description" content="Your data, ready to modernize. Your organization, built to keep it that way. Definian's Data Modernization Assessment evaluates the quality of your data and your organization's ability to sustain it.">
+<meta name="description" content="Before AI. Before analytics. Know where your data stands. Definian's Data Modernization Assessment evaluates the quality of your data and your organization's ability to sustain it.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -136,6 +136,27 @@ em { font-style: italic; }
   font-size: clamp(16px, 1.4vw, 19px); line-height: 1.6;
   color: var(--def-cool-gray); max-width: 760px;
 }
+.hero-actions {
+  margin-top: 32px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px;
+}
+.hero-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 26px;
+  background: var(--def-green); color: var(--def-white);
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  letter-spacing: -0.005em; text-decoration: none;
+  border-radius: var(--r-sm, 4px); border: 1px solid var(--def-green);
+  white-space: nowrap;
+  transition: background 200ms ease, gap 200ms ease, transform 200ms ease, border-color 200ms ease;
+}
+.hero-cta span { transition: transform 200ms ease; }
+.hero-cta:hover { background: var(--def-green-600); border-color: var(--def-green-600); gap: 14px; transform: translateY(-2px); }
+.hero-cta.ghost {
+  background: transparent; color: var(--def-cool-gray);
+  border-color: var(--def-dark-gray);
+}
+.hero-cta.ghost:hover { background: transparent; border-color: var(--def-green); color: var(--def-white); transform: translateY(-2px); }
 .hero .cues {
   margin-top: 28px;
   display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
@@ -1561,8 +1582,12 @@ em { font-style: italic; }
 <div class="page-view is-active" id="page-view-edra">
 
   <header class="hero">
-    <h1>Your data, ready to modernize.<br><em>Your organization, built to keep it that way.</em></h1>
-    <p class="sub">Definian's Data Modernization Assessment evaluates both the quality of your data and your organization's ability to sustain trusted data through modernization. Explore each section below.</p>
+    <h1>Before AI. Before Analytics.<br><em>Know where your data stands.</em></h1>
+    <p class="sub">Definian's Data Modernization Assessment evaluates both the quality of your data and your organization's ability to sustain trusted data through modernization.</p>
+    <div class="hero-actions">
+      <a class="hero-cta" href="https://www.definian.com/contact" target="_blank" rel="noopener noreferrer">Start a conversation <span aria-hidden="true">→</span></a>
+      <a class="hero-cta ghost" href="#how-we-work">See how an assessment works</a>
+    </div>
   </header>
 
   <section class="pipeline-wrap" aria-label="Doctrine">
@@ -1577,8 +1602,8 @@ em { font-style: italic; }
 
   <section class="page-thesis" aria-label="Closing thesis">
     <div class="page-thesis-inner">
-      <span class="lede">Most assessments end at the recommendation.</span>
-      <span class="punch"><em>Ours ends with a plan the organization can run.</em></span>
+      <span class="lede">Most assessments end with a recommendation.</span>
+      <span class="punch"><em>Ours ends with an executable plan.</em></span>
     </div>
   </section>
 
@@ -1595,7 +1620,7 @@ em { font-style: italic; }
 
   <section class="stat-strip" aria-label="Outcomes">
     <div class="stat-strip-inner">
-      <div class="stat-strip-eyebrow">What the discipline carries</div>
+      <div class="stat-strip-eyebrow">The Definian difference</div>
       <div class="stat-row">
         <div>
           <div class="stat-num"><span class="count-up" data-count="15">0</span>–<span class="count-up" data-count="25">0</span><span class="pct">%</span></div>
@@ -1896,7 +1921,7 @@ const DOCTRINE = [
     id: 'get',
     num: '05',
     name: 'What You Get',
-    tag: 'Most assessments end at the recommendation. Ours ends with a plan the organization can run.',
+    tag: 'Most assessments end with a recommendation. Ours ends with an executable plan.',
     isDashboard: true,
     blurbs: [
       'The assessment delivers a clear picture of where you stand, what to fix, who fixes it, and how the discipline holds afterward.'
