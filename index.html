@@ -100,19 +100,24 @@ em { font-style: italic; }
 }
 .topbar nav a:hover, .topbar nav a.is-current { opacity: 1; color: var(--def-white); }
 .topbar nav a.is-current { color: var(--def-green); }
-.topbar nav .cta {
+.topbar .cta {
+  display: inline-flex; align-items: center;
   padding: 8px 18px;
   background: var(--def-green); color: var(--def-white);
-  border-radius: 4px; font-weight: 600; opacity: 1;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 600; letter-spacing: 0.005em;
+  opacity: 1;
+  white-space: nowrap;
   transition: background 160ms ease, transform 160ms ease;
 }
-.topbar nav .cta:hover { background: var(--def-green-600); transform: translateY(-1px); }
+.topbar .cta:hover { background: var(--def-green-600); transform: translateY(-1px); color: var(--def-white); }
+.topbar .cta .cta-label-short { display: none; }
 .topbar .nav-toggle {
   display: none;
   flex-direction: column; align-items: center; justify-content: center;
   gap: 5px;
   width: 40px; height: 40px;
-  margin-left: auto;
   padding: 0;
   background: transparent;
   border: 1px solid transparent;
@@ -1105,8 +1110,20 @@ em { font-style: italic; }
 }
 @media (max-width: 720px) {
   .dim-detail .dd { grid-template-columns: 1fr; gap: 4px; }
-  .dim-spine-wrap { overflow-x: auto; }
-  .dim-spine { min-width: 720px; }
+  .dim-spine-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-color: rgba(0, 171, 99, 0.5) rgba(255, 255, 255, 0.05);
+    scrollbar-width: thin;
+    padding-bottom: 140px;
+    /* Right-edge fade as a scroll affordance */
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), rgba(0,0,0,0.4) 100%);
+            mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), rgba(0,0,0,0.4) 100%);
+  }
+  .dim-spine-wrap::-webkit-scrollbar { height: 6px; }
+  .dim-spine-wrap::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+  .dim-spine-wrap::-webkit-scrollbar-thumb { background: rgba(0, 171, 99, 0.5); border-radius: 3px; }
+  .dim-spine { min-width: 640px; }
 }
 
 /* ============================================================
@@ -1400,13 +1417,19 @@ em { font-style: italic; }
 .jdetail-body em { color: var(--def-green); font-style: normal; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: 11.5px; }
 
 @media (max-width: 720px) {
-  .journey-scale-wrap, .journey-gantt { grid-template-columns: 1fr; }
-  .journey-scale-label, .jrow-label { display: none; }
-  .journey-gantt { gap: 8px; padding: 4px 0; border: none; }
-  .journey-gantt::after { display: none; }
-  .jtrack { grid-column: 1; height: auto; }
-  .jbar { position: static; top: auto; bottom: auto; width: 100% !important; left: 0 !important; padding: 14px 16px; }
-  .jbar-label { white-space: normal; }
+  /* Keep the gantt timeline visible on mobile — compact the label column
+     but preserve the week scale, gridlines, and bars-positioned-by-week. */
+  .journey-scale-wrap, .journey-gantt { grid-template-columns: 36px 1fr; gap: 0 8px; }
+  .journey-scale-label { display: none; }
+  .jtick-cap { display: none; }
+  .jtick-num { font-size: 12px; }
+  .journey-gantt { padding: 10px 0; }
+  .journey-gantt::after { left: calc(36px + 8px); }
+  .jrow-label { font-size: 10px; padding-right: 2px; }
+  .jtrack { height: 38px; }
+  .jbar { padding: 0 8px; gap: 6px; }
+  .jbar-node { width: 8px; height: 8px; }
+  .jbar-label { font-size: 11.5px; }
 }
 
 /* HWW §02 — Methodology threads (icon accordion) */
@@ -1525,6 +1548,7 @@ em { font-style: italic; }
 /* ── Mobile ──────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .topbar .nav-toggle { display: inline-flex; }
+  .topbar .cta { margin-left: auto; padding: 7px 14px; font-size: 13px; }
   .topbar nav.topnav-links {
     position: absolute; top: 100%; left: 0; right: 0;
     margin-left: 0;
@@ -1552,12 +1576,6 @@ em { font-style: italic; }
     border-bottom: 1px solid var(--def-dark-gray);
   }
   .topbar nav.topnav-links a:last-child { border-bottom: none; }
-  .topbar nav.topnav-links .cta {
-    margin-top: 14px;
-    text-align: center;
-    border-radius: 4px;
-    border-bottom: none;
-  }
 }
 @media (max-width: 980px) {
   .pipeline.cols-6, .pipeline.cols-5, .pipeline.cols-4 { grid-template-columns: repeat(3, 1fr); }
@@ -1599,7 +1617,6 @@ em { font-style: italic; }
   .hero-actions { flex-direction: column; align-items: stretch; gap: 12px; }
   .hero-actions .hero-cta { width: 100%; justify-content: center; }
   .topbar nav { gap: 14px; }
-  .topbar nav .cta { padding: 7px 14px; font-size: 13px; }
 }
 
 @media (max-width: 480px) {
@@ -1614,6 +1631,20 @@ em { font-style: italic; }
   .hww-bridge-inner { padding: 22px 18px; }
   .contact { padding: 12px 18px 56px; }
   .foot { padding: 18px; }
+  .topbar { gap: 10px; }
+  .topbar .cta { padding: 7px 12px; font-size: 12.5px; }
+  .topbar .cta .cta-label-full { display: none; }
+  .topbar .cta .cta-label-short { display: inline; }
+  /* Gantt: collapse the label column further and drop bar labels
+     since the bars become too narrow for inline text. The phase name
+     still appears in the active jdetail panel below. */
+  .journey-scale-wrap, .journey-gantt { grid-template-columns: 28px 1fr; gap: 0 6px; }
+  .journey-gantt::after { left: calc(28px + 6px); }
+  .jbar { padding: 0 5px; gap: 0; justify-content: center; }
+  .jbar-label { display: none; }
+  .jtrack { height: 34px; }
+  .jtick-num { font-size: 11px; }
+  .jrow-label { font-size: 9.5px; }
 }
 
 /* Reduced motion */
@@ -1647,16 +1678,19 @@ em { font-style: italic; }
     <span class="brand-divider" aria-hidden="true"></span>
     <span class="doc-title">Data Modernization Assessment</span>
   </div>
+  <nav class="topnav-links" id="topnav-links" aria-label="Pages">
+    <a href="#assessment" id="navAssessment">Assessment</a>
+    <a href="#how-we-work" id="navHww">How We Work</a>
+  </nav>
+  <a class="cta topbar-cta" href="https://www.definian.com/contact" target="_blank" rel="noopener noreferrer">
+    <span class="cta-label-full">Start a conversation</span>
+    <span class="cta-label-short">Contact</span>
+  </a>
   <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="topnav-links">
     <span class="nav-toggle-bar"></span>
     <span class="nav-toggle-bar"></span>
     <span class="nav-toggle-bar"></span>
   </button>
-  <nav class="topnav-links" id="topnav-links" aria-label="Pages">
-    <a href="#assessment" id="navAssessment">Assessment</a>
-    <a href="#how-we-work" id="navHww">How We Work</a>
-    <a class="cta" href="https://www.definian.com/contact" target="_blank" rel="noopener noreferrer">Start a conversation</a>
-  </nav>
 </nav>
 
 <!-- ============================================================
