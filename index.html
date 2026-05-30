@@ -1589,13 +1589,31 @@ em { font-style: italic; }
   }
   .hww-bridge-link { justify-content: center; }
   .contact { padding: 16px 20px 72px; }
-  .foot { padding: 20px; }
+  .foot { padding: 20px; justify-content: center; text-align: center; gap: 10px 14px; }
+  .foot > div { display: flex; gap: 18px; }
+  .foot a { margin-left: 0; }
   .pipeline.cols-6, .pipeline.cols-5, .pipeline.cols-4 { grid-template-columns: 1fr; }
   .phase .card { min-height: 0; padding-bottom: 56px; }
   .dim-grid { grid-template-columns: 1fr; }
   .hero h1 em { white-space: normal; }
+  .hero-actions { flex-direction: column; align-items: stretch; gap: 12px; }
+  .hero-actions .hero-cta { width: 100%; justify-content: center; }
   .topbar nav { gap: 14px; }
   .topbar nav .cta { padding: 7px 14px; font-size: 13px; }
+}
+
+@media (max-width: 480px) {
+  .hero { padding: 32px 18px 12px; }
+  .pipeline-wrap { padding: 20px 18px 12px; }
+  .drawer-wrap { padding: 0 16px; }
+  .drawer-card { padding: 22px 18px 22px; }
+  .page-thesis { padding: 44px 18px 18px; }
+  .stat-strip { padding: 28px 16px 24px; }
+  .stat-strip-inner { padding: 22px 18px; }
+  .hww-bridge { padding: 28px 16px 32px; }
+  .hww-bridge-inner { padding: 22px 18px; }
+  .contact { padding: 12px 18px 56px; }
+  .foot { padding: 18px; }
 }
 
 /* Reduced motion */
