@@ -248,7 +248,7 @@ em { font-style: italic; }
   position: relative;
   display: flex;
   flex-direction: column;
-  padding-top: 56px;
+  padding-top: 24px;
 }
 .phase .node {
   position: absolute; left: 50%; top: 5px;
@@ -905,7 +905,7 @@ em { font-style: italic; }
 .dim-spine .cx-baseline {
   position: absolute;
   left: 8px; right: 8px;
-  top: 26px;
+  top: 35px;
   height: 1px;
   background: linear-gradient(90deg, rgba(0,171,99,0) 0%, rgba(0,171,99,0.45) 8%, rgba(0,171,99,0.45) 92%, rgba(0,171,99,0) 100%);
   pointer-events: none;
@@ -979,7 +979,7 @@ em { font-style: italic; }
 /* Primary crossings — small arrow + label between dimensions on the baseline */
 .dim-spine .cx-prim {
   display: flex; flex-direction: column; align-items: center;
-  padding: 0; margin-top: 5px;
+  padding: 0; margin-top: 17.5px;
   background: none; border: 0; cursor: pointer; color: inherit;
 }
 .dim-spine .cx-prim:focus-visible { outline: 2px solid var(--def-green); outline-offset: 6px; border-radius: 4px; }
@@ -995,7 +995,7 @@ em { font-style: italic; }
   transform: scale(1.18);
 }
 .dim-spine .cx-prim-label {
-  margin-top: 28px;
+  margin-top: 15.5px;
   font-family: var(--font-display);
   font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
   color: var(--def-cool-gray); opacity: 0.5;
@@ -1191,7 +1191,7 @@ em { font-style: italic; }
 .cc-kind { font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--def-cool-gray); opacity: .55; margin-bottom: 8px; }
 .cc-name { font-family: var(--font-display); font-size: 19px; font-weight: 600; color: var(--def-white); letter-spacing: -.01em; line-height: 1.2; }
 .cc-q { margin: 14px 0 20px; padding: 12px 16px; border-left: 2px solid var(--def-green); background: rgba(0,171,99,.05); border-radius: 0 6px 6px 0; font-family: var(--font-display); font-size: 16px; font-weight: 500; color: var(--def-white); font-style: italic; }
-.cc-rows { display: flex; flex-direction: column; gap: 14px; margin-top: auto; }
+.cc-rows { display: flex; flex-direction: column; gap: 14px; }
 .cc-row { display: flex; flex-direction: column; gap: 6px; }
 .cc-row-label { display: inline-flex; align-items: center; gap: 7px; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .cc-row-label .ms { font-size: 16px; }
@@ -2209,7 +2209,9 @@ function renderPipeline(pageId, phases, pipelineEl) {
     tile.dataset.id = p.id;
     tile.setAttribute('role', 'tab');
     tile.setAttribute('aria-pressed', 'false');
-    tile.style.padding = '0';
+    tile.style.paddingLeft = '0';
+    tile.style.paddingRight = '0';
+    tile.style.paddingBottom = '0';
     tile.style.background = 'transparent';
     tile.style.cursor = 'pointer';
     tile.style.textAlign = 'left';
