@@ -2589,10 +2589,37 @@ function renderCrossingCards(p, id) {
       <div class="dx-cross-grid">${cards}</div>`;
 }
 
+/* Drawer placement: on mobile (≤720px) move the shared drawer DOM
+   element to sit directly under the active card so expanding card N
+   pushes cards N+1, N+2... down rather than dumping the user below
+   the entire stack. On desktop, leave it in its drawer-wrap. */
+const DRAWER_MOBILE_MQ = window.matchMedia('(max-width: 720px)');
+const _drawerOrigParent = {};
+
+function placeDrawer(pageId, phaseId) {
+  const drawer = document.getElementById(pageId === 'edra' ? 'edraDrawer' : 'hwwDrawer');
+  const pipeline = document.getElementById(pageId === 'edra' ? 'edraPipeline' : 'hwwPipeline');
+  if (!drawer || !pipeline) return;
+  if (!_drawerOrigParent[pageId]) _drawerOrigParent[pageId] = drawer.parentElement;
+
+  if (DRAWER_MOBILE_MQ.matches && phaseId) {
+    const card = pipeline.querySelector('.phase[data-id="' + phaseId + '"]');
+    if (card && card.nextElementSibling !== drawer) {
+      card.insertAdjacentElement('afterend', drawer);
+    }
+  } else {
+    const orig = _drawerOrigParent[pageId];
+    if (orig && drawer.parentElement !== orig) {
+      orig.appendChild(drawer);
+    }
+  }
+}
+
 function togglePhase(pageId, phases, phaseId) {
   const state = pageState[pageId];
   const drawer = document.getElementById(pageId === 'edra' ? 'edraDrawer' : 'hwwDrawer');
   const pipeline = document.getElementById(pageId === 'edra' ? 'edraPipeline' : 'hwwPipeline');
+  const isMobile = DRAWER_MOBILE_MQ.matches;
 
   if (state.open === phaseId) {
     // Close
@@ -2603,7 +2630,12 @@ function togglePhase(pageId, phases, phaseId) {
       t.classList.remove('is-open');
       t.setAttribute('aria-pressed', 'false');
     });
-    setTimeout(() => { drawer.innerHTML = ''; }, 500);
+    setTimeout(() => {
+      drawer.innerHTML = '';
+      // After close, return drawer to its original parent so a closed
+      // empty drawer doesn't leave a visual gap between mobile cards.
+      placeDrawer(pageId, null);
+    }, 500);
     return;
   }
 
@@ -2614,18 +2646,28 @@ function togglePhase(pageId, phases, phaseId) {
     t.classList.toggle('is-open', on);
     t.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
+  // Move drawer into position (under active card on mobile, drawer-wrap on desktop) before painting content
+  placeDrawer(pageId, phaseId);
   drawer.innerHTML = renderDrawer(pageId, phases, phaseId);
   // Force reflow so transition fires
   void drawer.offsetWidth;
   drawer.classList.add('is-open');
   wireDrawerHandlers(pageId, phases, phaseId);
 
-  // Scroll the drawer comfortably into view (sticky nav offset = 64).
+  // Scroll into view: desktop scrolls to the drawer; mobile scrolls to
+  // the tapped card so the drawer (now inline below it) is visible too.
   setTimeout(() => {
-    const card = drawer.querySelector('.drawer-card');
-    if (!card) return;
-    const top = card.getBoundingClientRect().top + window.pageYOffset - 90;
-    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    if (isMobile) {
+      const tapped = pipeline.querySelector('.phase[data-id="' + phaseId + '"]');
+      if (!tapped) return;
+      const top = tapped.getBoundingClientRect().top + window.pageYOffset - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    } else {
+      const card = drawer.querySelector('.drawer-card');
+      if (!card) return;
+      const top = card.getBoundingClientRect().top + window.pageYOffset - 90;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
   }, 120);
 }
 
@@ -2830,6 +2872,15 @@ function __initV3() {
   }
 
   initNavToggle();
+
+  // Reposition drawer if user crosses the mobile breakpoint while a card is open
+  const mqHandler = () => {
+    Object.keys(pageState).forEach(pageId => {
+      placeDrawer(pageId, pageState[pageId].open);
+    });
+  };
+  if (DRAWER_MOBILE_MQ.addEventListener) DRAWER_MOBILE_MQ.addEventListener('change', mqHandler);
+  else DRAWER_MOBILE_MQ.addListener(mqHandler);
 
   window.addEventListener('hashchange', routeFromHash);
   routeFromHash();
