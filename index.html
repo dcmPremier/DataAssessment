@@ -350,7 +350,7 @@ em { font-style: italic; }
   padding-top: 14px;
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   color: var(--def-cool-gray); font-size: 11px; letter-spacing: 0.04em;
-  text-transform: uppercase; opacity: 0.65;
+  text-transform: uppercase;
   min-width: 0;
 }
 .phase .meta .count {
@@ -359,21 +359,27 @@ em { font-style: italic; }
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  opacity: 0.65;
 }
 .phase .meta .count b { color: var(--def-green); font-weight: 700; font-size: 13px; }
 .phase .meta .open-cue {
   display: inline-flex; align-items: center;
-  color: var(--def-cool-gray); opacity: 0.7;
   flex-shrink: 0;
-  font-size: 0;  /* hide "Open" text node; arrow alone carries the affordance */
-  transition: color 200ms ease, opacity 200ms ease;
+  font-size: 0;  /* hide "Open" text node; the circular arrow carries the affordance */
 }
 .phase .meta .open-cue::after {
-  content: "→"; font-size: 14px; line-height: 1;
-  transition: transform 240ms var(--ease-out);
+  content: "→";
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 999px;
+  background: var(--def-green); color: var(--def-midnight);
+  font-size: 18px; font-weight: 700; line-height: 1;
+  box-shadow: 0 3px 12px rgba(0, 171, 99, 0.45);
+  transition: transform 240ms var(--ease-out), background 200ms ease, box-shadow 200ms ease;
 }
-.phase:hover .meta .open-cue, .phase.is-open .meta .open-cue {
-  color: var(--def-green); opacity: 1;
+.phase:hover .meta .open-cue::after {
+  background: var(--def-green-bright, #00FF99);
+  transform: translateX(3px);
+  box-shadow: 0 4px 18px rgba(0, 255, 153, 0.55);
 }
 .phase.is-open .meta .open-cue::after { transform: rotate(90deg); }
 
@@ -895,179 +901,120 @@ em { font-style: italic; }
 .dim-detail .dtext { color: var(--def-cool-gray); font-size: 15px; line-height: 1.6; }
 .dim-detail .dtext + .dlabel { margin-top: 16px; }
 
-/* ===== Dimensional spine (V3 reimagining of V2's arc diagram) ===== */
-.dim-spine-wrap {
+/* ===== Dimension Explorer (replaces the V2/V3 arc-diagram spine) =====
+   A two-step, mobile-safe pattern: (1) a labeled, clearly-tappable
+   dimension selector on a connecting spine line, (2) the selected
+   dimension's detail, (3) its relationships as legible expandable
+   "crossing" cards. No thin SVG arcs to discover; everything stacks
+   cleanly on small screens. */
+.dx { margin: 22px 0 4px; }
+.dx-steplabel {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--def-green); opacity: .85; margin-bottom: 16px;
+}
+.dx-steplabel .ms { font-size: 16px; }
+
+/* ---- Dimension selector rail ---- */
+.dx-rail {
   position: relative;
-  margin: 24px 0 28px;
-  padding: 40px 24px 180px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.005));
-  border: 1px solid rgba(216, 215, 238, 0.08);
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+}
+.dx-rail::before {
+  content: ""; position: absolute; left: 10%; right: 10%; top: 33px; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,171,99,.4) 14%, rgba(0,171,99,.4) 86%, transparent);
+  pointer-events: none;
+}
+.dx-node {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0 6px 12px; background: none; border: 0; cursor: pointer; color: inherit;
   border-radius: 10px;
-  /* No overflow:hidden — the longer-range arcs need room to curve and
-     return without being clipped. */
 }
-.dim-spine { position: relative; }
-.dim-spine .cx-baseline {
-  position: absolute;
-  left: 8px; right: 8px;
-  top: 35px;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(0,171,99,0) 0%, rgba(0,171,99,0.45) 8%, rgba(0,171,99,0.45) 92%, rgba(0,171,99,0) 100%);
-  pointer-events: none;
+.dx-node:focus-visible { outline: 2px solid var(--def-green); outline-offset: 3px; }
+.dx-node-num {
+  height: 16px; line-height: 16px; margin-bottom: 8px;
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 700; letter-spacing: .14em;
+  color: var(--def-cool-gray); opacity: .5; transition: color 200ms ease, opacity 200ms ease;
 }
-.dim-spine .cx-baseline::after {
-  content: ""; position: absolute; inset: -1px 0; height: 3px; top: -1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(0,255,153,0) 0%, rgba(0,255,153,0.9) 50%, rgba(0,255,153,0) 100%);
-  background-size: 25% 100%;
-  animation: trackPulse var(--particle-speed) linear infinite;
-  filter: blur(2px);
+.dx-node-dot {
+  width: 18px; height: 18px; border-radius: 999px;
+  background: var(--def-midnight); border: 2px solid rgba(0,171,99,.55);
+  transition: background 220ms var(--ease-out), border-color 220ms ease, transform 220ms ease, box-shadow 220ms ease;
 }
-.dim-spine .cx-row {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr auto 1fr auto 1fr auto 1fr auto;
-  align-items: start;
-  gap: 4px;
-  padding-top: 12px;
-}
-.dim-spine .cx-dim {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 0 8px;
-  background: none; border: 0; cursor: pointer; color: inherit;
-  text-align: center;
-}
-.dim-spine .cx-dim:focus-visible { outline: 2px solid var(--def-green); outline-offset: 6px; border-radius: 4px; }
-.dim-spine .cx-dim-num {
-  font-family: var(--font-display);
-  font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em;
-  color: var(--def-green); opacity: 0.7;
-  margin-bottom: 4px;
-  transition: opacity 200ms ease;
-}
-.dim-spine .cx-dim:hover .cx-dim-num,
-.dim-spine .cx-dim.is-active .cx-dim-num,
-.dim-spine .cx-dim.is-flank .cx-dim-num { opacity: 1; }
-.dim-spine .cx-dim-dot {
-  width: 14px; height: 14px; border-radius: 999px;
-  background: var(--def-midnight);
-  border: 2px solid var(--def-green);
-  box-shadow: 0 0 0 4px rgba(0, 171, 99, 0.10), 0 0 18px rgba(0, 171, 99, 0.40);
-  transition: background 220ms var(--ease-out), transform 220ms var(--ease-out), box-shadow 220ms ease;
-}
-.dim-spine .cx-dim:hover .cx-dim-dot {
-  background: var(--def-green);
-  transform: scale(1.12);
-  box-shadow: 0 0 0 6px rgba(0, 171, 99, 0.18), 0 0 24px rgba(0, 171, 99, 0.6);
-}
-.dim-spine .cx-dim.is-active .cx-dim-dot {
-  background: var(--def-green);
-  transform: scale(1.18);
-  box-shadow: 0 0 0 8px rgba(0, 171, 99, 0.24), 0 0 32px rgba(0, 171, 99, 0.85);
-}
-.dim-spine .cx-dim.is-flank .cx-dim-dot {
-  background: var(--def-green);
-}
-.dim-spine .cx-dim-name {
-  margin-top: 14px;
-  font-family: var(--font-display);
-  font-size: 12.5px; font-weight: 600; line-height: 1.25;
-  color: var(--def-cool-gray); opacity: 0.82;
-  max-width: 110px;
-  letter-spacing: 0;
-  text-wrap: balance;
+.dx-node:hover .dx-node-dot { border-color: var(--def-green); transform: scale(1.1); }
+.dx-node-name {
+  margin-top: 12px;
+  font-family: var(--font-display); font-size: 13px; font-weight: 600; line-height: 1.2;
+  text-align: center; color: var(--def-cool-gray); opacity: .7; letter-spacing: -.005em; text-wrap: balance;
   transition: color 200ms ease, opacity 200ms ease;
 }
-.dim-spine .cx-dim:hover .cx-dim-name,
-.dim-spine .cx-dim.is-active .cx-dim-name,
-.dim-spine .cx-dim.is-flank .cx-dim-name { color: var(--def-white); opacity: 1; }
+.dx-node:hover .dx-node-num, .dx-node:hover .dx-node-name { opacity: 1; }
+.dx-node.is-active .dx-node-num { color: var(--def-green); opacity: 1; }
+.dx-node.is-active .dx-node-dot {
+  background: var(--def-green); border-color: var(--def-green); transform: scale(1.15);
+  box-shadow: 0 0 0 6px rgba(0,171,99,.16), 0 0 22px rgba(0,171,99,.7);
+}
+.dx-node.is-active .dx-node-name { color: var(--def-white); opacity: 1; }
 
-/* Primary crossings — small arrow + label between dimensions on the baseline */
-.dim-spine .cx-prim {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 0; margin-top: 17.5px;
-  background: none; border: 0; cursor: pointer; color: inherit;
+/* ---- Selected-dimension detail ---- */
+.dx-detail {
+  margin-top: 24px; padding-top: 22px;
+  border-top: 1px solid rgba(216,215,238,.1);
+  animation: dxfade 340ms var(--ease-out);
 }
-.dim-spine .cx-prim:focus-visible { outline: 2px solid var(--def-green); outline-offset: 6px; border-radius: 4px; }
-.dim-spine .cx-prim-arrow {
-  width: 12px; height: 12px;
-  background: rgba(216, 215, 238, 0.35);
-  clip-path: polygon(0 40%, 60% 40%, 60% 0, 100% 50%, 60% 100%, 60% 60%, 0 60%);
-  transition: background 200ms ease, transform 200ms ease;
-}
-.dim-spine .cx-prim:hover .cx-prim-arrow,
-.dim-spine .cx-prim.is-open .cx-prim-arrow {
-  background: var(--def-green);
-  transform: scale(1.18);
-}
-.dim-spine .cx-prim-label {
-  margin-top: 15.5px;
-  font-family: var(--font-display);
-  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
-  color: var(--def-cool-gray); opacity: 0.5;
-  text-transform: uppercase;
-  white-space: nowrap;
-  transition: color 200ms ease, opacity 200ms ease;
-}
-.dim-spine .cx-prim:hover .cx-prim-label,
-.dim-spine .cx-prim.is-open .cx-prim-label { color: var(--def-green); opacity: 1; }
+@keyframes dxfade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.dx-kind { font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--def-green); opacity: .85; margin-bottom: 10px; }
+.dx-title { font-family: var(--font-display); font-size: clamp(20px, 2vw, 24px); line-height: 1.2; font-weight: 600; color: var(--def-white); letter-spacing: -.005em; margin: 0 0 14px; text-wrap: balance; }
+.dx-body p { color: var(--def-cool-gray); font-size: 15px; line-height: 1.65; opacity: .9; margin: 0 0 12px; }
+.dx-body em { color: var(--def-white); font-style: italic; }
+.dx-dd { display: grid; grid-template-columns: 132px 1fr; gap: 16px; margin: 14px 0; align-items: baseline; }
+.dx-dd-label { font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--def-green); opacity: .75; }
+.dx-dd-text { color: var(--def-cool-gray); font-size: 14.5px; line-height: 1.65; opacity: .9; }
+.dx-dd-text em { color: var(--def-white); font-style: italic; }
 
-/* Secondary arcs SVG */
-.dim-spine .cx-arcs {
-  position: absolute;
-  left: 8px; right: 8px;
-  top: 32px;
-  width: calc(100% - 16px);
-  height: 260px;
-  pointer-events: none;
-  overflow: visible;
+/* ---- Crossings (the relationships, as cards) ---- */
+.dx-cross { margin-top: 28px; }
+.dx-cross-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--def-cool-gray); opacity: .85; margin-bottom: 14px; }
+.dx-cross-head .ms { font-size: 17px; color: var(--def-green); }
+.dx-cross-head b { color: var(--def-white); font-weight: 600; }
+.dx-cross-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dx-cross-card {
+  position: relative; text-align: left; display: block; width: 100%;
+  padding: 16px 18px; cursor: pointer; color: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.008));
+  border: 1px solid var(--def-dark-gray); border-radius: 12px;
+  transition: border-color 200ms ease, background 200ms ease;
 }
-.dim-spine .cx-arc-group { pointer-events: none; opacity: 0; transition: opacity 280ms ease; }
-.dim-spine .cx-arc-group.is-revealed { pointer-events: auto; opacity: 1; }
-.dim-spine .cx-arc-hit { fill: none; stroke: transparent; stroke-width: 22; cursor: pointer; }
-.dim-spine .cx-arc {
-  fill: none;
-  stroke: rgba(216, 215, 238, 0.42);
-  stroke-width: 1;
-  stroke-linecap: round;
-  transition: stroke 220ms ease, stroke-width 220ms ease;
-}
-.dim-spine .cx-arc-group.is-revealed .cx-arc {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: arcDrawIn 900ms var(--ease-out) forwards;
-}
-@keyframes arcDrawIn { to { stroke-dashoffset: 0; } }
-.dim-spine .cx-arc-group.is-revealed:hover .cx-arc { stroke: var(--def-green); stroke-width: 2; }
-.dim-spine .cx-arc-group.is-open .cx-arc {
-  stroke: var(--def-green); stroke-width: 2.5;
-  filter: drop-shadow(0 0 4px rgba(0, 255, 153, 0.6));
-}
-.dim-spine .cx-arc-label {
-  fill: rgba(216, 215, 238, 0.55);
-  font-family: var(--font-display);
-  font-size: 9.5px; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  text-anchor: middle;
-  opacity: 0;
-  transition: opacity 280ms ease, fill 220ms ease;
-}
-.dim-spine .cx-arc-group.is-revealed .cx-arc-label { opacity: 1; transition-delay: 360ms; }
-.dim-spine .cx-arc-group.is-revealed:hover .cx-arc-label,
-.dim-spine .cx-arc-group.is-open .cx-arc-label { fill: var(--def-green); opacity: 1; }
+.dx-cross-card:hover { border-color: rgba(0,171,99,.5); background: linear-gradient(180deg, rgba(0,171,99,.07), rgba(255,255,255,.012)); }
+.dx-cross-card.is-open { border-color: var(--def-green); background: linear-gradient(180deg, rgba(0,171,99,.1), rgba(255,255,255,.012)); }
+.dx-cross-card:focus-visible { outline: 2px solid var(--def-green); outline-offset: 3px; }
+.dx-cross-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dx-cross-tag { font-size: 9.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--def-green); opacity: .8; }
+.dx-cross-cue { color: var(--def-cool-gray); opacity: .5; font-size: 20px; transition: transform 260ms var(--ease-out), color 200ms ease, opacity 200ms ease; }
+.dx-cross-card:hover .dx-cross-cue, .dx-cross-card.is-open .dx-cross-cue { color: var(--def-green); opacity: 1; }
+.dx-cross-card.is-open .dx-cross-cue { transform: rotate(45deg); }
+.dx-cross-title { font-family: var(--font-display); font-size: 15.5px; font-weight: 600; line-height: 1.25; color: var(--def-white); letter-spacing: -.005em; margin-top: 12px; }
+.dx-cross-teaser { font-size: 13px; line-height: 1.5; color: var(--def-cool-gray); opacity: .72; margin-top: 6px; }
+.dx-cross-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 440ms var(--ease-out), margin-top 300ms ease; margin-top: 0; }
+.dx-cross-card.is-open .dx-cross-body { grid-template-rows: 1fr; margin-top: 12px; }
+.dx-cross-body-inner { overflow: hidden; min-height: 0; }
+.dx-cross-body-inner > div { padding-top: 12px; border-top: 1px solid rgba(216,215,238,.1); }
+.dx-cross-body p { color: var(--def-cool-gray); font-size: 13.5px; line-height: 1.6; opacity: .88; margin: 0 0 .8em; }
+.dx-cross-body p:last-child { margin: 0; }
+.dx-cross-body em { color: var(--def-green); font-style: normal; font-weight: 600; }
 
-.cx-arc-hint {
-  position: absolute;
-  left: 50%; bottom: 24px;
-  transform: translateX(-50%);
-  font-family: var(--font-display);
-  font-size: 11px; letter-spacing: 0.08em;
-  color: var(--def-cool-gray); opacity: 0.5;
-  white-space: nowrap;
-  pointer-events: none;
-  font-style: italic;
-  transition: opacity 260ms ease;
+@media (max-width: 700px) {
+  .dx-rail { grid-template-columns: 1fr; gap: 8px; }
+  .dx-rail::before { display: none; }
+  .dx-node { flex-direction: row; align-items: center; gap: 14px; padding: 13px 16px; border: 1px solid var(--def-dark-gray); border-radius: 10px; background: rgba(255,255,255,.02); transition: border-color 200ms ease, background 200ms ease; }
+  .dx-node-num { height: auto; line-height: 1; margin-bottom: 0; opacity: .7; }
+  .dx-node-name { margin-top: 0; text-align: left; font-size: 15px; }
+  .dx-node.is-active { border-color: var(--def-green); background: rgba(0,171,99,.08); }
+  .dx-dd { grid-template-columns: 1fr; gap: 4px; }
+  .dx-cross-grid { grid-template-columns: 1fr; }
+  .dx-cross-teaser { display: none; }
 }
-.dim-spine.has-active-dim ~ .cx-arc-hint { opacity: 0; }
 
 /* Spine detail panel — used by dim / primary / secondary crossings */
 .dim-detail .dim-empty {
@@ -1168,7 +1115,7 @@ em { font-style: italic; }
   color: var(--def-white); margin-top: 18px; text-wrap: balance;
 }
 .pillar-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 460ms var(--ease-out), margin-top 320ms ease; margin-top: 0; }
-.pillar:hover .pillar-body, .pillar.is-open .pillar-body { grid-template-rows: 1fr; margin-top: 14px; }
+.pillar.is-open .pillar-body { grid-template-rows: 1fr; margin-top: 14px; }
 .pillar-body-inner { overflow: hidden; min-height: 0; }
 .pillar-desc { color: var(--def-white); font-size: 14px; line-height: 1.5; font-weight: 500; margin: 0 0 8px; opacity: .95; }
 .pillar-deep { color: var(--def-cool-gray); font-size: 13.5px; line-height: 1.6; opacity: .8; }
@@ -1322,7 +1269,7 @@ em { font-style: italic; }
 .dtile-badge { font-size: 9.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--def-green); border: 1px solid rgba(0,171,99,.4); border-radius: 999px; padding: 4px 11px; }
 .dtile-name { font-family: var(--font-display); font-size: 16px; font-weight: 600; line-height: 1.25; letter-spacing: -.005em; color: var(--def-white); margin-top: 14px; text-wrap: balance; }
 .dtile-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 440ms var(--ease-out), margin-top 300ms ease; margin-top: 0; }
-.dtile:hover .dtile-body, .dtile.is-open .dtile-body { grid-template-rows: 1fr; margin-top: 10px; }
+.dtile.is-open .dtile-body { grid-template-rows: 1fr; margin-top: 10px; }
 .dtile-body-inner { overflow: hidden; min-height: 0; }
 .dtile-body p { color: var(--def-cool-gray); font-size: 13.5px; line-height: 1.6; opacity: .85; margin: 0; }
 .dtile.is-feature { grid-column: 1 / -1; border-color: rgba(0,171,99,.5); background: linear-gradient(120deg, rgba(0,171,99,.12), rgba(255,255,255,.015)); }
@@ -1330,6 +1277,10 @@ em { font-style: italic; }
 .dtile.is-feature .dtile-name { font-size: 19px; }
 .dtile.is-feature .dtile-body { grid-template-rows: 1fr; margin-top: 12px; }
 .dtile.is-feature .dtile-body p { font-size: 15px; max-width: 760px; }
+/* The Playbook feature tile is always expanded and not clickable — no hover affordance. */
+.dtile.is-feature { cursor: default; }
+.dtile.is-feature:hover { transform: none; box-shadow: none; border-color: rgba(0,171,99,.5); background: linear-gradient(120deg, rgba(0,171,99,.12), rgba(255,255,255,.015)); }
+.dtile.is-feature:hover .dtile-icon { background: transparent; }
 
 @media (max-width: 980px) {
   .pillars { grid-template-columns: 1fr; }
@@ -1352,85 +1303,30 @@ em { font-style: italic; }
    V5 — How We Work components
    ============================================================ */
 
-/* HWW §01 — Engagement journey (Gantt-style timeline) */
-.journey { margin: 6px 0 4px; }
-.journey-scale-wrap { display: grid; grid-template-columns: 64px 1fr; align-items: end; gap: 14px; margin-bottom: 10px; }
-.journey-scale-label { font-size: 10.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--def-cool-gray); opacity: .55; padding-bottom: 4px; }
-.journey-scale { display: grid; grid-template-columns: repeat(6, 1fr); grid-column: 2; }
-.journey-scale .jtick { position: relative; text-align: center; padding-bottom: 8px; }
-.journey-scale .jtick::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 1px; height: 6px; background: rgba(216,215,238,.22); transform: translateX(-50%); }
-.jtick-num { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--def-cool-gray); opacity: .7; }
-.jtick-cap { display: block; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--def-cool-gray); opacity: .4; margin-top: 1px; }
-
-.journey-gantt {
-  position: relative;
-  display: grid; grid-template-columns: 64px 1fr; gap: 0 14px;
-  padding: 14px 0;
-  border-top: 1px solid rgba(216,215,238,.1);
-  border-bottom: 1px solid rgba(216,215,238,.1);
-}
-/* week gridlines behind the bars (over the 1fr track only) */
-.journey-gantt::after {
-  content: ""; position: absolute; top: 0; bottom: 0; left: calc(64px + 14px); right: 0;
-  background-image: repeating-linear-gradient(90deg, rgba(216,215,238,.09) 0 1px, transparent 1px calc(100% / 6));
-  pointer-events: none;
-}
-.jrow { display: contents; }
-.jrow-label { grid-column: 1; align-self: center; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--def-cool-gray); opacity: .5; text-align: right; }
-.jtrack { grid-column: 2; position: relative; height: 46px; }
-.jbar {
-  position: absolute; top: 5px; bottom: 5px;
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 16px 0 14px;
-  border-radius: 8px; cursor: pointer; text-align: left;
-  background: rgba(0,171,99,.10);
-  border: 1px solid rgba(0,171,99,.4);
-  box-shadow: inset 0 0 0 0 rgba(0,171,99,0);
-  transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease, opacity 220ms ease;
-  overflow: hidden; min-width: 0;
-}
-.jbar::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--def-green); opacity: .6; transition: opacity 200ms ease; }
-.jbar-node { width: 9px; height: 9px; border-radius: 50%; background: var(--def-midnight); border: 2px solid var(--def-green); flex-shrink: 0; transition: background 200ms ease, box-shadow 200ms ease; }
-.jbar-label { font-family: var(--font-display); font-size: 13.5px; font-weight: 600; color: var(--def-white); letter-spacing: -.005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.jbar:hover { background: rgba(0,171,99,.18); transform: translateY(-1px); }
-.jbar:focus-visible { outline: 2px solid var(--def-green); outline-offset: 3px; }
-.jbar.is-active {
-  background: linear-gradient(120deg, rgba(0,171,99,.42), rgba(0,171,99,.24));
-  border-color: var(--def-green);
-  box-shadow: 0 0 0 1px rgba(0,171,99,.5), 0 8px 26px rgba(0,171,99,.28);
-}
-.jbar.is-active::before { opacity: 1; box-shadow: 0 0 12px rgba(0,255,153,.6); }
-.jbar.is-active .jbar-node { background: var(--def-green-bright, #00FF99); box-shadow: 0 0 10px rgba(0,255,153,.8); }
-.jbar.is-passed { opacity: .9; }
-.jbar.is-passed .jbar-node { background: var(--def-green); }
-
-.journey-detail { position: relative; margin-top: 22px; }
-.jdetail { display: none; }
-.jdetail.is-active { display: block; animation: jfade 360ms var(--ease-out); }
-@keyframes jfade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.jdetail-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
-.jdetail-week { display: inline-flex; align-items: center; padding: 5px 13px; border-radius: 999px; background: rgba(0,171,99,.12); border: 1px solid rgba(0,171,99,.4); color: var(--def-green); font-family: var(--font-display); font-size: 12px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
-.jdetail-title { font-family: var(--font-display); font-size: 21px; font-weight: 600; color: var(--def-white); letter-spacing: -.01em; line-height: 1.2; margin: 0; }
-.jdetail-body { color: var(--def-cool-gray); font-size: 14.5px; line-height: 1.65; opacity: .9; }
-.jdetail-body p { margin: 0 0 .9em; }
-.jdetail-body p:last-child { margin-bottom: 0; }
-.jdetail-body em { color: var(--def-green); font-style: normal; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: 11.5px; }
-
-@media (max-width: 720px) {
-  /* Keep the gantt timeline visible on mobile — compact the label column
-     but preserve the week scale, gridlines, and bars-positioned-by-week. */
-  .journey-scale-wrap, .journey-gantt { grid-template-columns: 36px 1fr; gap: 0 8px; }
-  .journey-scale-label { display: none; }
-  .jtick-cap { display: none; }
-  .jtick-num { font-size: 12px; }
-  .journey-gantt { padding: 10px 0; }
-  .journey-gantt::after { left: calc(36px + 8px); }
-  .jrow-label { font-size: 10px; padding-right: 2px; }
-  .jtrack { height: 38px; }
-  .jbar { padding: 0 8px; gap: 6px; }
-  .jbar-node { width: 8px; height: 8px; }
-  .jbar-label { font-size: 11.5px; }
-}
+/* HWW §01 — Engagement journey (phase accordion; week pills carry the timing) */
+.jt { display: flex; flex-direction: column; gap: 12px; margin: 10px 0 4px; }
+.jt-row { position: relative; background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.008)); border: 1px solid var(--def-dark-gray); border-radius: 12px; transition: border-color 200ms ease, background 200ms ease; }
+.jt-row:hover, .jt-row.is-open { border-color: rgba(0,171,99,.5); background: linear-gradient(180deg, rgba(0,171,99,.07), rgba(255,255,255,.012)); }
+.jt-row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--def-green); opacity: .5; border-radius: 12px 0 0 12px; transition: opacity 200ms ease, box-shadow 200ms ease; }
+.jt-row:hover::before, .jt-row.is-open::before { opacity: 1; box-shadow: 0 0 12px rgba(0,255,153,.6); }
+.jt-head { display: flex; align-items: center; gap: 16px; width: 100%; background: none; border: 0; padding: 18px 22px; cursor: pointer; color: inherit; text-align: left; }
+.jt-head:focus-visible { outline: 2px solid var(--def-green); outline-offset: 2px; border-radius: 12px; }
+.jt-headmain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
+.jt-topline { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.jt-week { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; background: rgba(0,171,99,.12); border: 1px solid rgba(0,171,99,.4); color: var(--def-green); font-family: var(--font-display); font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.jt-name { font-family: var(--font-display); font-size: 17px; font-weight: 600; color: var(--def-white); letter-spacing: -.005em; line-height: 1.25; }
+.jt-desc { color: var(--def-cool-gray); font-size: 13.5px; line-height: 1.5; opacity: .78; }
+.jt-chevron { flex-shrink: 0; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; color: var(--def-cool-gray); opacity: .55; transition: transform 300ms var(--ease-out), color 200ms ease, opacity 200ms ease; }
+.jt-chevron svg { display: block; }
+.jt-row:hover .jt-chevron, .jt-row.is-open .jt-chevron { color: var(--def-green); opacity: 1; }
+.jt-row.is-open .jt-chevron { transform: rotate(90deg); }
+.jt-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 460ms var(--ease-out); }
+.jt-row.is-open .jt-body { grid-template-rows: 1fr; }
+.jt-body-inner { overflow: hidden; min-height: 0; }
+.jt-deep { margin: 0 22px; padding: 16px 0 20px; border-top: 1px solid rgba(216,215,238,.1); color: var(--def-cool-gray); font-size: 14.5px; line-height: 1.65; opacity: .9; }
+.jt-deep p { margin: 0 0 .9em; }
+.jt-deep p:last-child { margin-bottom: 0; }
+.jt-deep em { color: var(--def-green); font-style: normal; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: 11.5px; }
 
 /* HWW §02 — Methodology threads (icon accordion) */
 .methods { display: flex; flex-direction: column; gap: 12px; margin: 4px 0; }
@@ -1462,8 +1358,7 @@ em { font-style: italic; }
 
 /* HWW §04 — Team roster cards */
 .roles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 4px 0; }
-.role-card { display: flex; gap: 16px; align-items: flex-start; padding: 18px 20px; border: 1px solid var(--def-dark-gray); border-radius: 12px; background: rgba(255,255,255,.025); transition: border-color 200ms ease, background 200ms ease, transform 200ms ease; }
-.role-card:hover { border-color: rgba(0,171,99,.45); background: rgba(0,171,99,.04); transform: translateY(-2px); }
+.role-card { display: flex; gap: 16px; align-items: flex-start; padding: 18px 20px; border: 1px solid var(--def-dark-gray); border-radius: 12px; background: rgba(255,255,255,.025); }
 .role-icon { width: 46px; height: 46px; border-radius: 10px; border: 1px solid rgba(0,171,99,.45); display: inline-flex; align-items: center; justify-content: center; color: var(--def-green); flex-shrink: 0; }
 .role-icon .ms { font-size: 25px; }
 .role-nm { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--def-white); letter-spacing: -.005em; line-height: 1.2; }
@@ -1612,6 +1507,11 @@ em { font-style: italic; }
   .foot a { margin-left: 0; }
   .pipeline.cols-6, .pipeline.cols-5, .pipeline.cols-4 { grid-template-columns: 1fr; }
   .phase .card { min-height: 0; padding-bottom: 56px; }
+  /* Mobile: the connecting track is gone, so the glowing node dots float
+     orphaned above each card and add nothing — drop them and reclaim the gap. */
+  .phase .node { display: none; }
+  .phase { padding-top: 0; }
+  .pipeline { padding-top: 0; }
   .dim-grid { grid-template-columns: 1fr; }
   .hero h1 em { white-space: normal; }
   .hero-actions { flex-direction: column; align-items: stretch; gap: 12px; }
@@ -1635,16 +1535,10 @@ em { font-style: italic; }
   .topbar .cta { padding: 7px 12px; font-size: 12.5px; }
   .topbar .cta .cta-label-full { display: none; }
   .topbar .cta .cta-label-short { display: inline; }
-  /* Gantt: collapse the label column further and drop bar labels
-     since the bars become too narrow for inline text. The phase name
-     still appears in the active jdetail panel below. */
-  .journey-scale-wrap, .journey-gantt { grid-template-columns: 28px 1fr; gap: 0 6px; }
-  .journey-gantt::after { left: calc(28px + 6px); }
-  .jbar { padding: 0 5px; gap: 0; justify-content: center; }
-  .jbar-label { display: none; }
-  .jtrack { height: 34px; }
-  .jtick-num { font-size: 11px; }
-  .jrow-label { font-size: 9.5px; }
+  /* Engagement timeline: tighten card padding on very small screens. */
+  .jt-head { padding: 16px 18px; gap: 12px; }
+  .jt-deep { margin: 0 18px; }
+  .jt-name { font-size: 15.5px; }
 }
 
 /* Reduced motion */
@@ -2485,7 +2379,7 @@ function renderDifferenceDrawer(p) {
 /* §05 — Deliverables dashboard: icon per artifact, detail on hover/click. */
 function renderDashboardDrawer(p) {
   const tiles = p.items.map((it, idx) => `
-    <div class="dtile${it.feature ? ' is-feature' : ''}" data-idx="${idx}" role="button" tabindex="0" aria-expanded="false">
+    <div class="dtile${it.feature ? ' is-feature no-expand' : ''}" data-idx="${idx}"${it.feature ? '' : ' role="button" tabindex="0" aria-expanded="false"'}>
       <div class="dtile-top">
         <span class="dtile-icon"><span class="ms" aria-hidden="true">${it.icon}</span></span>
         ${it.feature ? '<span class="dtile-badge">The outcome</span>' : ''}
@@ -2501,52 +2395,35 @@ function renderDashboardDrawer(p) {
     </div>`;
 }
 
-/* HWW §01 — The Engagement as a Gantt-style journey across the weeks. */
+/* HWW §01 — The Engagement as a phase accordion; the week pill on each card carries the timing. */
 function renderTimelineDrawer(p) {
-  const TOTAL = 6;
   const weekLabel = (sp, idx) => {
     const s = sp ? sp[0] : idx + 1, e = sp ? sp[1] : idx + 1;
-    return e > s ? `Weeks ${s}–${e}` : `Week ${s}`;
+    return e > s ? `Weeks ${s}\u2013${e}` : `Week ${s}`;
   };
+  const chevron = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
   const rows = p.items.map((it, idx) => {
-    const sp = it.span || [idx + 1, idx + 1];
-    const left = (sp[0] - 1) / TOTAL * 100;
-    const width = (sp[1] - sp[0] + 1) / TOTAL * 100;
+    const open = idx === 0;
     return `
-    <div class="jrow">
-      <div class="jrow-label">0${idx + 1}</div>
-      <div class="jtrack">
-        <button class="jbar${idx === 0 ? ' is-active' : ''}" data-idx="${idx}" type="button" role="tab"
-          aria-selected="${idx === 0 ? 'true' : 'false'}" style="left:${left}%; width:${width}%;">
-          <span class="jbar-node" aria-hidden="true"></span>
-          <span class="jbar-label">${it.phase || it.nm}</span>
-        </button>
-      </div>
-    </div>`;
+        <div class="jt-row${open ? ' is-open' : ''}">
+          <button class="jt-head" type="button" aria-expanded="${open ? 'true' : 'false'}">
+            <span class="jt-headmain">
+              <span class="jt-topline">
+                <span class="jt-week">${weekLabel(it.span, idx)}</span>
+                <span class="jt-name">${it.phase || it.nm}</span>
+              </span>
+              <span class="jt-desc">${it.desc || ''}</span>
+            </span>
+            <span class="jt-chevron" aria-hidden="true">${chevron}</span>
+          </button>
+          <div class="jt-body"><div class="jt-body-inner"><div class="jt-deep">${it.deep}</div></div></div>
+        </div>`;
   }).join('');
-
-  const scale = Array.from({ length: TOTAL }, (_, i) =>
-    `<span class="jtick"><span class="jtick-num">${i + 1}</span></span>`).join('');
-
-  const details = p.items.map((it, idx) => `
-    <div class="jdetail${idx === 0 ? ' is-active' : ''}" data-idx="${idx}" role="tabpanel">
-      <div class="jdetail-head">
-        <span class="jdetail-week">${weekLabel(it.span, idx)}</span>
-        <h4 class="jdetail-title">${it.phase || it.nm}</h4>
-      </div>
-      <div class="jdetail-body">${it.deep}</div>
-    </div>`).join('');
-
   return `
     <div class="drawer-card">
       ${drawerHead(p)}
-      <div class="journey" id="engagementJourney" role="tablist" aria-label="Engagement timeline">
-        <div class="journey-scale-wrap">
-          <span class="journey-scale-label">Week</span>
-          <div class="journey-scale">${scale}</div>
-        </div>
-        <div class="journey-gantt">${rows}</div>
-        <div class="journey-detail">${details}</div>
+      <div class="jt" id="engagementJourney" aria-label="Engagement timeline">
+        ${rows}
       </div>
       ${p.closing ? `<div class="drawer-closing"><p>${p.closing}</p></div>` : ''}
     </div>`;
@@ -2629,27 +2506,12 @@ function renderTeamDrawer(p) {
 
 function renderDimensionsDrawer(p) {
   const blurbsHtml = (p.blurbs || []).map(b => `<p>${b}</p>`).join('');
-  // Build the spine: 5 dimensions interleaved with 4 primary crossings.
-  const items = [];
-  p.dims.forEach((d, i) => {
-    items.push(`
-      <button class="cx-dim" data-dim="${d.id}" type="button" aria-pressed="false">
-        <span class="cx-dim-num">${d.num}</span>
-        <span class="cx-dim-dot" aria-hidden="true"></span>
-        <span class="cx-dim-name">${d.short}</span>
-      </button>
-    `);
-    if (i < p.dims.length - 1) {
-      const next = p.dims[i + 1];
-      const key = d.id + ':' + next.id;
-      items.push(`
-        <button class="cx-prim" data-cross="${key}" type="button" aria-pressed="false">
-          <span class="cx-prim-arrow" aria-hidden="true"></span>
-          <span class="cx-prim-label">${d.short.slice(0,1)} \u2192 ${next.short.slice(0,1)}</span>
-        </button>
-      `);
-    }
-  });
+  const nodes = p.dims.map((d, i) => `
+        <button class="dx-node${i === 0 ? ' is-active' : ''}" data-dim="${d.id}" type="button" role="tab" aria-selected="${i === 0 ? 'true' : 'false'}">
+          <span class="dx-node-num">${d.num}</span>
+          <span class="dx-node-dot" aria-hidden="true"></span>
+          <span class="dx-node-name">${d.short}</span>
+        </button>`).join('');
   return `
     <div class="drawer-card">
       <div class="drawer-head">
@@ -2660,47 +2522,71 @@ function renderDimensionsDrawer(p) {
         </div>
         <button class="closebtn" type="button" aria-label="Close" data-action="close"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg></button>
       </div>
-      <div class="dim-spine-wrap">
-        <div class="dim-spine" id="dimSpine">
-          <div class="cx-baseline" aria-hidden="true"></div>
-          <svg class="cx-arcs" id="cxArcs" aria-hidden="true"></svg>
-          <div class="cx-row">${items.join('')}</div>
+      <div class="dx" id="dimExplorer">
+        <div class="dx-steplabel"><span class="ms" aria-hidden="true">touch_app</span> Select a dimension to explore</div>
+        <div class="dx-rail" role="tablist" aria-label="Assessment dimensions">${nodes}
         </div>
-        <div class="cx-arc-hint" id="cxArcHint">Select a dimension to reveal its longer-range crossings.</div>
+        <div class="dx-detail" id="dxDetail" role="tabpanel"></div>
+        <div class="dx-cross" id="dxCross"></div>
       </div>
-      <div class="dim-detail" id="dimDetail"></div>
     </div>
   `;
 }
 
-function renderDimensionDetail(p, key) {
-  const detail = document.getElementById('dimDetail');
+function renderDimensionDetail(p, id) {
+  const detail = document.getElementById('dxDetail');
+  const cross = document.getElementById('dxCross');
   if (!detail) return;
+  const d = p.dims.find(x => x.id === id);
+  if (!d) { detail.innerHTML = ''; if (cross) cross.innerHTML = ''; return; }
+  detail.innerHTML =
+    `<div class="dx-kind">${d.num} \u00b7 Dimension</div>` +
+    `<h4 class="dx-title">${d.nm}</h4>` +
+    `<div class="dx-body"><p>${d.blurb}</p>` +
+      `<div class="dx-dd"><div class="dx-dd-label">What surfaces</div><div class="dx-dd-text">${d.surfaces}</div></div>` +
+      `<div class="dx-dd"><div class="dx-dd-label">Where risk lives</div><div class="dx-dd-text">${d.risk}</div></div>` +
+    `</div>`;
+  if (cross) cross.innerHTML = renderCrossingCards(p, id);
+}
 
-  // key can be a dim id or a crossing key (e.g., 'architecture:quality')
-  if (!key) {
-    detail.innerHTML = '<p class="dim-empty">Select a dimension to read what it evaluates. Select a crossing to read what surfaces where two dimensions meet.</p>';
-    return;
-  }
-  if (key.indexOf(':') !== -1) {
-    const c = (p.crossings || {})[key];
-    if (!c) return;
-    const kindLabel = c.kind === 'primary' ? 'Primary crossing' : 'Longer-range crossing';
-    detail.innerHTML =
-      `<div class="dim-kind">${kindLabel}</div>` +
-      `<h4 class="dim-title">${c.title}</h4>` +
-      `<div class="dim-body">${c.paras.map(x => `<p>${x}</p>`).join('')}</div>`;
-  } else {
-    const d = p.dims.find(x => x.id === key);
-    if (!d) return;
-    detail.innerHTML =
-      `<div class="dim-kind">${d.num} \u00b7 Dimension</div>` +
-      `<h4 class="dim-title">${d.nm}</h4>` +
-      `<div class="dim-body"><p>${d.blurb}</p>` +
-        `<div class="dd"><div class="dd-label">What surfaces</div><div class="dd-text">${d.surfaces}</div></div>` +
-        `<div class="dd"><div class="dd-label">Where risk lives</div><div class="dd-text">${d.risk}</div></div>` +
-      `</div>`;
-  }
+function renderCrossingCards(p, id) {
+  const crossings = p.crossings || {};
+  const idxOf = {}; p.dims.forEach((d, i) => { idxOf[d.id] = i; });
+  const dimShort = x => (p.dims.find(d => d.id === x) || {}).short || '';
+  const related = Object.keys(crossings)
+    .filter(k => k.split(':').indexOf(id) !== -1)
+    .sort((a, b) => {
+      const ca = crossings[a], cb = crossings[b];
+      if (ca.kind !== cb.kind) return ca.kind === 'primary' ? -1 : 1;
+      const pa = a.split(':').filter(x => x !== id)[0];
+      const pb = b.split(':').filter(x => x !== id)[0];
+      return idxOf[pa] - idxOf[pb];
+    });
+  const teaser = (htmlStr) => {
+    let t = (htmlStr || '').replace(/<[^>]+>/g, '');
+    const m = t.match(/^[^.]+\./);
+    if (m) t = m[0];
+    t = t.trim();
+    if (t.length > 100) t = t.slice(0, 98).replace(/\s+\S*$/, '') + '\u2026';
+    return t;
+  };
+  const cards = related.map(key => {
+    const c = crossings[key];
+    const tag = c.kind === 'primary' ? 'Adjacent crossing' : 'Longer-range crossing';
+    return `
+        <button class="dx-cross-card" data-cross="${key}" type="button" aria-expanded="false">
+          <div class="dx-cross-card-top">
+            <span class="dx-cross-tag">${tag}</span>
+            <span class="dx-cross-cue ms" aria-hidden="true">add</span>
+          </div>
+          <div class="dx-cross-title">${c.title}</div>
+          <div class="dx-cross-teaser">${teaser(c.paras[0])}</div>
+          <div class="dx-cross-body"><div class="dx-cross-body-inner"><div>${c.paras.map(x => `<p>${x}</p>`).join('')}</div></div></div>
+        </button>`;
+  }).join('');
+  return `
+      <div class="dx-cross-head"><span class="ms" aria-hidden="true">hub</span> <span>Where <b>${dimShort(id)}</b> meets the other dimensions \u2014 tap any to read what surfaces.</span></div>
+      <div class="dx-cross-grid">${cards}</div>`;
 }
 
 function togglePhase(pageId, phases, phaseId) {
@@ -2773,30 +2659,25 @@ function wireDrawerHandlers(pageId, phases, phaseId) {
 
   // Dimension spine wiring (only for evaluate phase)
   if (p && p.isDimensions) {
-    wireDimensionSpine(p, drawer);
+    wireDimensionExplorer(p, drawer);
   }
 
-  // §01 pillars + §05 dashboard tiles — independent click/keyboard expand
-  // (CSS also reveals on hover for pointer devices).
-  // §01 engagement journey — Gantt bars select a phase, detail panel swaps below
+  // §01 pillars + §05 dashboard tiles — click/keyboard expand only
+  // (hover highlights the card but does not reveal content).
+  // §01 engagement journey — vertical timeline accordion (single-open stepper)
   const journey = drawer.querySelector('#engagementJourney');
   if (journey) {
-    const bars = [...journey.querySelectorAll('.jbar')];
-    const dets = [...journey.querySelectorAll('.jdetail')];
-    function selectJourney(idx) {
-      bars.forEach((b, i) => {
-        const active = i === idx;
-        b.classList.toggle('is-active', active);
-        b.classList.toggle('is-passed', i < idx);
-        b.setAttribute('aria-selected', active ? 'true' : 'false');
+    const rows = [...journey.querySelectorAll('.jt-row')];
+    rows.forEach((row, i) => {
+      const head = row.querySelector('.jt-head');
+      head.addEventListener('click', () => {
+        const wasOpen = row.classList.contains('is-open');
+        rows.forEach(r => { r.classList.remove('is-open'); r.querySelector('.jt-head').setAttribute('aria-expanded', 'false'); });
+        if (!wasOpen) { row.classList.add('is-open'); head.setAttribute('aria-expanded', 'true'); }
       });
-      dets.forEach(d => d.classList.toggle('is-active', +d.dataset.idx === idx));
-    }
-    bars.forEach((b, i) => {
-      b.addEventListener('click', () => selectJourney(i));
-      b.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); bars[Math.min(i + 1, bars.length - 1)].focus(); selectJourney(Math.min(i + 1, bars.length - 1)); }
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); bars[Math.max(i - 1, 0)].focus(); selectJourney(Math.max(i - 1, 0)); }
+      head.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); rows[Math.min(i + 1, rows.length - 1)].querySelector('.jt-head').focus(); }
+        if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); rows[Math.max(i - 1, 0)].querySelector('.jt-head').focus(); }
       });
     });
   }
@@ -2842,191 +2723,37 @@ function wireDrawerHandlers(pageId, phases, phaseId) {
   }
 }
 
-function wireDimensionSpine(p, drawer) {
-  const spine = drawer.querySelector('#dimSpine');
-  const arcSvg = drawer.querySelector('#cxArcs');
-  if (!spine || !arcSvg) return;
+function wireDimensionExplorer(p, drawer) {
+  const explorer = drawer.querySelector('#dimExplorer');
+  if (!explorer) return;
+  const rail = explorer.querySelector('.dx-rail');
+  const nodes = [...rail.querySelectorAll('.dx-node')];
 
-  const state = { activeDim: null, activeCross: null, arcGroups: {} };
-
-  // ---------- secondary arcs ----------
-  const SECONDARY = [
-    ['architecture', 'masterdata'],
-    ['architecture', 'process'],
-    ['architecture', 'governance'],
-    ['quality', 'process'],
-    ['quality', 'governance'],
-    ['masterdata', 'governance']
-  ];
-  const idxOf = {};
-  p.dims.forEach((d, i) => { idxOf[d.id] = i; });
-  const dimShort = id => (p.dims.find(d => d.id === id) || {}).short;
-
-  function drawArcs() {
-    arcSvg.innerHTML = '';
-    state.arcGroups = {};
-    const dots = [...spine.querySelectorAll('.cx-dim-dot')];
-    if (dots.length < 5) return;
-    const wrap = arcSvg.getBoundingClientRect();
-    if (wrap.width === 0) return;
-    const H = 260;
-    arcSvg.setAttribute('viewBox', `0 0 ${wrap.width} ${H}`);
-    arcSvg.setAttribute('preserveAspectRatio', 'none');
-
-    const xPositions = {};
-    p.dims.forEach((d, i) => {
-      const r = dots[i].getBoundingClientRect();
-      xPositions[d.id] = (r.left + r.width / 2) - wrap.left;
-    });
-
-    const ns = 'http://www.w3.org/2000/svg';
-    SECONDARY.forEach(([from, to]) => {
-      const key = from + ':' + to;
-      const x1 = xPositions[from], x2 = xPositions[to];
-      if (x1 == null || x2 == null) return;
-      const span = Math.abs(idxOf[to] - idxOf[from]);
-      // Depth must keep the curve's lowest point + label inside the SVG
-      // (height H above). With a quadratic Bezier whose start/end y=4 and
-      // control y=ctrl, the midpoint visible bottom is ~ ctrl/2 + 2.
-      // depth scale tuned to fit ≤4-span arcs in 260px.
-      const depth = 40 + span * 20;
-      const ctrl = depth * 1.5;       // control point y
-      const midX = (x1 + x2) / 2;
-      const d = `M ${x1} 4 Q ${midX} ${ctrl} ${x2} 4`;
-      const labelY = Math.min(H - 8, depth + 22);
-
-      const g = document.createElementNS(ns, 'g');
-      g.setAttribute('class', 'cx-arc-group');
-      g.dataset.cross = key;
-
-      const hit = document.createElementNS(ns, 'path');
-      hit.setAttribute('class', 'cx-arc-hit');
-      hit.setAttribute('d', d);
-
-      const vis = document.createElementNS(ns, 'path');
-      vis.setAttribute('class', 'cx-arc');
-      vis.setAttribute('d', d);
-      vis.setAttribute('pathLength', '1');
-
-      const label = document.createElementNS(ns, 'text');
-      label.setAttribute('class', 'cx-arc-label');
-      label.setAttribute('x', String(midX));
-      label.setAttribute('y', String(labelY));
-      label.textContent = dimShort(from) + ' \u2192 ' + dimShort(to);
-
-      g.appendChild(hit);
-      g.appendChild(vis);
-      g.appendChild(label);
-      arcSvg.appendChild(g);
-      state.arcGroups[key] = g;
-
-      g.addEventListener('click', () => {
-        if (!g.classList.contains('is-revealed')) return;
-        selectCrossing(key);
+  function wireCrossCards() {
+    drawer.querySelectorAll('.dx-cross-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const open = card.classList.toggle('is-open');
+        card.setAttribute('aria-expanded', open ? 'true' : 'false');
       });
     });
   }
-
-  function revealArcsForDim(id) {
-    Object.entries(state.arcGroups).forEach(([key, g]) => {
-      const [a, b] = key.split(':');
-      g.classList.toggle('is-revealed', a === id || b === id);
-      g.classList.remove('is-open');
-    });
-  }
-  function hideAllArcs() {
-    Object.values(state.arcGroups).forEach(g => {
-      g.classList.remove('is-revealed', 'is-open');
-    });
-  }
-
   function selectDim(id) {
-    if (state.activeDim === id) {
-      state.activeDim = null; state.activeCross = null;
-      spine.classList.remove('has-active-dim');
-      spine.querySelectorAll('.cx-dim').forEach(b => { b.classList.remove('is-active', 'is-flank'); b.setAttribute('aria-pressed', 'false'); });
-      spine.querySelectorAll('.cx-prim').forEach(b => { b.classList.remove('is-open'); b.setAttribute('aria-pressed', 'false'); });
-      hideAllArcs();
-      renderDimensionDetail(p, null);
-      return;
-    }
-    state.activeDim = id; state.activeCross = null;
-    spine.classList.add('has-active-dim');
-    spine.querySelectorAll('.cx-dim').forEach(b => {
-      const on = b.dataset.dim === id;
-      b.classList.toggle('is-active', on);
-      b.classList.remove('is-flank');
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    nodes.forEach(n => {
+      const on = n.dataset.dim === id;
+      n.classList.toggle('is-active', on);
+      n.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    spine.querySelectorAll('.cx-prim').forEach(b => { b.classList.remove('is-open'); b.setAttribute('aria-pressed', 'false'); });
-    revealArcsForDim(id);
     renderDimensionDetail(p, id);
+    wireCrossCards();
   }
-
-  function selectCrossing(key) {
-    if (state.activeCross === key) {
-      // Toggle off: keep active dim if there was one
-      state.activeCross = null;
-      Object.values(state.arcGroups).forEach(g => g.classList.remove('is-open'));
-      spine.querySelectorAll('.cx-prim').forEach(b => { b.classList.remove('is-open'); b.setAttribute('aria-pressed', 'false'); });
-      if (state.activeDim) renderDimensionDetail(p, state.activeDim);
-      else renderDimensionDetail(p, null);
-      return;
-    }
-    const cross = (p.crossings || {})[key];
-    if (!cross) return;
-    state.activeCross = key;
-    if (cross.kind === 'primary') {
-      // Clear active dim, highlight flanks of this primary
-      const [a, b] = key.split(':');
-      state.activeDim = null;
-      spine.classList.remove('has-active-dim');
-      spine.querySelectorAll('.cx-dim').forEach(d => {
-        const isFlank = (d.dataset.dim === a || d.dataset.dim === b);
-        d.classList.remove('is-active');
-        d.classList.toggle('is-flank', isFlank);
-        d.setAttribute('aria-pressed', 'false');
-      });
-      spine.querySelectorAll('.cx-prim').forEach(b2 => {
-        const on = b2.dataset.cross === key;
-        b2.classList.toggle('is-open', on);
-        b2.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
-      hideAllArcs();
-    } else {
-      // Secondary: keep active dim, highlight this arc
-      Object.entries(state.arcGroups).forEach(([k, g]) => {
-        g.classList.toggle('is-open', k === key);
-      });
-    }
-    renderDimensionDetail(p, key);
-  }
-
-  spine.querySelectorAll('.cx-dim').forEach(btn => {
-    btn.addEventListener('click', () => selectDim(btn.dataset.dim));
-  });
-  spine.querySelectorAll('.cx-prim').forEach(btn => {
-    btn.addEventListener('click', () => selectCrossing(btn.dataset.cross));
-  });
-
-  // Initial: no selection, empty hint visible
-  renderDimensionDetail(p, null);
-
-  // Draw arcs once layout settles, then on resize
-  function settle() {
-    requestAnimationFrame(() => {
-      const w = arcSvg.getBoundingClientRect().width;
-      if (w === 0) { setTimeout(settle, 80); return; }
-      drawArcs();
+  nodes.forEach((n, i) => {
+    n.addEventListener('click', () => selectDim(n.dataset.dim));
+    n.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); const t = nodes[Math.min(i + 1, nodes.length - 1)]; t.focus(); selectDim(t.dataset.dim); }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); const t = nodes[Math.max(i - 1, 0)]; t.focus(); selectDim(t.dataset.dim); }
     });
-  }
-  settle();
-  if (typeof ResizeObserver !== 'undefined') {
-    const ro = new ResizeObserver(() => drawArcs());
-    ro.observe(arcSvg);
-  }
-  // Pre-select Architecture for an immediate populated state (matches V2 affordance).
-  setTimeout(() => { if (!state.activeDim && !state.activeCross) selectDim('architecture'); }, 240);
+  });
+  selectDim(p.dims[0].id);
 }
 
 /* ---------- Particles (subtle motion along the track) ---------- */
